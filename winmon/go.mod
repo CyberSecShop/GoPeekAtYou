@@ -1,3 +1,3 @@
-module boskantoor.co.za/winmon
+module winmon
 
 go 1.20
