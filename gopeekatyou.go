@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"github.com/cybersecshop/gopeekatyou/winmon"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc/eventlog"
 )
 
@@ -45,8 +44,8 @@ func main() {
 
 }
 
-func FetchInfo(handle windows.Handle) ([]byte, error) {
-	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle)))
+func FetchInfo(handle *eventlog.Log) ([]byte, error) {
+	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 
 	//ComputerName := handle.Get
 
@@ -66,6 +65,6 @@ func FetchInfo(handle windows.Handle) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Debug("Done fetching info for Event Log handler " + fmt.Sprint(uintptr(handle)))
+	log.Debug("Done fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 	return json, nil // All good, return error code 0
 }

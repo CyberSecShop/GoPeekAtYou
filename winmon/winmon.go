@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc/eventlog"
 	"strconv"
 )
@@ -37,7 +36,7 @@ func Start(name string) (int, error) {
 	return 0, nil // All good, let's go home
 }
 
-func GetHandle(name string) (windows.Handle, error) {
+func GetHandle(name string) (*eventlog.Log, error) {
 
 	// Need to install the monitoring agent first
 	installReturnCode, err := Install(name)
@@ -52,9 +51,9 @@ func GetHandle(name string) (windows.Handle, error) {
 	handle, err := Open(name)
 	if err != nil {
 		log.Error("Failed to get handle! Because " + err.Error())
-		return -2, err
+		return nil, err
 	} else {
-		handleStr := fmt.Sprint(uintptr(handle))
+		handleStr := fmt.Sprint(uintptr(handle.Handle))
 		log.Debug("Obtained Event log handler: " + handleStr)
 	}
 
@@ -77,21 +76,21 @@ func Install(name string) (int, error) {
 	return 0, nil // All good, return error code 0
 }
 
-func Open(name string) (windows.Handle, error) {
+func Open(name string) (*eventlog.Log, error) {
 	log.Debug("Opening Event Log handler for " + name)
 
 	handle, err := eventlog.Open(name)
 	if err != nil || handle == nil {
 		log.Warn("Failed to start monitoring for " + name)
-		return handle.Handle, errors.New(err.Error())
+		return handle, errors.New(err.Error())
 	}
 
 	log.Debug("Opened Event Log handler for " + name)
-	return handle.Handle, nil // All good, return error code 0
+	return handle, nil // All good, return error code 0
 }
 
-func FetchInfo(handle windows.Handle) ([]byte, error) {
-	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle)))
+func FetchInfo(handle *eventlog.Log) ([]byte, error) {
+	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 
 	//ComputerName := handle.Get
 
@@ -104,6 +103,6 @@ func FetchInfo(handle windows.Handle) ([]byte, error) {
 		return nil, err
 	}
 
-	log.Debug("Done fetching info for Event Log handler " + fmt.Sprint(uintptr(handle)))
+	log.Debug("Done fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 	return json, nil // All good, return error code 0
 }
