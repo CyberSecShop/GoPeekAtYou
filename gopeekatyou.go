@@ -1,25 +1,25 @@
 package main
 
 import (
-	"fmt"
 	"github.com/cybersecshop/gopeekatyou/winmon"
 	log "github.com/sirupsen/logrus"
+	"strconv"
 )
 
 func main() {
 
 	log.SetLevel(log.DebugLevel)
 
-	// Get a greeting message and print it.
-	message := winmon.Hello("Mrs. Robinson")
-	fmt.Println(message)
-
 	log.Info("Let's install the monitoring agent...")
-	installReturnCode, err := winmon.Install()
-	if installReturnCode == 0 {
-		log.Info("Installation completed.")
+
+	const name = "mylog"
+
+	ReturnCode, err := winmon.Start(name)
+	if ReturnCode == 0 {
+		log.Info("completed.")
 	} else {
-		log.Error("Installation failed! Because " + err.Error())
+		log.Error("Failed! Because " + err.Error() +
+			". (Return Code: " + strconv.Itoa(ReturnCode) + ")")
 	}
 
 }
