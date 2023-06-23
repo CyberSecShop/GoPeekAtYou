@@ -36,7 +36,7 @@ func Start(name string) (int, error) {
 			log.Error("Fetching info failed! Because " + fetchErr.Error())
 			return -3, fetchErr
 		} else {
-			log.Debug("Info retrieved:\n%s", json) //TODO testing!
+			log.Debug("Info retrieved:\n%s", string(json)) //TODO testing!
 		}
 	}
 
