@@ -13,10 +13,36 @@ import (
 func Start(name string) (int, error) {
 	log.Info("Starting monitoring of Windows Event logs.")
 
+	handle, err := GetHandle(name)
+
+	json, fetchErr := FetchInfo(handle)
+	if fetchErr != nil {
+		log.Error("Fetching info failed! Because " + fetchErr.Error())
+		return -3, fetchErr
+	} else {
+		log.Debug("Info retrieved:\n%s", string(json)) //TODO testing!
+	}
+
+	// Before we Go, let's clean up behind ourselves.
+	defer func() {
+		log.Debug("Closing handler(s).")
+		err = eventlog.Remove(name)
+		if err != nil {
+			log.Warn("Closing handle failed! Because " + err.Error())
+		} else {
+			log.Debug("Handler(s) closed.")
+		}
+	}()
+
+	return 0, nil // All good, let's go home
+}
+
+func GetHandle(name string) (windows.Handle, error) {
+
 	// Need to install the monitoring agent first
 	installReturnCode, err := Install(name)
 	if installReturnCode == 0 {
-		log.Info("Installation completed.")
+		log.Debug("Installation completed.")
 	} else {
 		log.Warning("Installation failed! Because " + err.Error() +
 			". (Return Code: " + strconv.Itoa(installReturnCode) + ")")
@@ -25,32 +51,14 @@ func Start(name string) (int, error) {
 	// Let's start monitoring...
 	handle, err := Open(name)
 	if err != nil {
-		log.Error("Monitoring start failed! Because " + err.Error())
+		log.Error("Failed to get handle! Because " + err.Error())
 		return -2, err
 	} else {
 		handleStr := fmt.Sprint(uintptr(handle))
-		log.Info("Monitoring started. Event log handle: " + handleStr)
-
-		json, fetchErr := FetchInfo(handle)
-		if fetchErr != nil {
-			log.Error("Fetching info failed! Because " + fetchErr.Error())
-			return -3, fetchErr
-		} else {
-			log.Debug("Info retrieved:\n%s", string(json)) //TODO testing!
-		}
+		log.Debug("Obtained Event log handler: " + handleStr)
 	}
 
-	// Before we Go, let's clean up behind ourselves.
-	defer func() {
-		err = eventlog.Remove(name)
-		if err != nil {
-			log.Warn("Closing handle failed! Because " + err.Error())
-		} else {
-			log.Info("Handler(s) closed.")
-		}
-	}()
-
-	return 0, nil // All good, let's go home
+	return handle, nil
 }
 
 func Install(name string) (int, error) {
@@ -88,14 +96,7 @@ func FetchInfo(handle windows.Handle) ([]byte, error) {
 	//ComputerName := handle.Get
 
 	// TODO testing
-	raw := map[string]interface{}{
-		"intValue":    1234,
-		"boolValue":   true,
-		"stringValue": "hello!",
-		"objectValue": map[string]interface{}{
-			"arrayValue": []int{1, 2, 3, 4},
-		},
-	}
+	raw := map[string]interface{}{}
 
 	json, err := json.Marshal(raw)
 	if err != nil {
