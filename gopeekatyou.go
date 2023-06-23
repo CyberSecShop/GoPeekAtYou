@@ -14,7 +14,7 @@ func main() {
 
 	ReturnCode, err := winmon.Start(name)
 	if ReturnCode == 0 {
-		log.Info("completed.")
+		log.Info("Mission Completed.")
 	} else {
 		log.Error("Failed! Because " + err.Error() +
 			". (Return Code: " + strconv.Itoa(ReturnCode) + ")")

@@ -2,6 +2,7 @@ package winmon
 
 import (
 	"errors"
+	"fmt"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sys/windows"
 	"golang.org/x/sys/windows/svc/eventlog"
@@ -21,11 +22,12 @@ func Start(name string) (int, error) {
 	}
 
 	// Let's start monitoring...
-	_, err = Open(name)
+	handle, err := Open(name)
 	if err != nil {
 		log.Error("Monitoring start failed! Because " + err.Error())
 	} else {
-		log.Info("Monitoring started. Event log handle: ???")
+		handleStr := fmt.Sprint(uintptr(handle))
+		log.Info("Monitoring started. Event log handle: " + handleStr)
 	}
 
 	return 0, nil // All good, return error code 0
@@ -43,12 +45,12 @@ func Install(name string) (int, error) {
 		return -1, errors.New(err.Error())
 	}
 
-	log.Info("Installation successful")
+	log.Debug("Installation successful")
 	return 0, nil // All good, return error code 0
 }
 
 func Open(name string) (windows.Handle, error) {
-	log.Debug("Installing winmon agent...")
+	log.Debug("Opening Event Log handler for " + name)
 
 	handle, err := eventlog.Open(name)
 	if err != nil || handle == nil {
@@ -56,6 +58,6 @@ func Open(name string) (windows.Handle, error) {
 		return handle.Handle, errors.New(err.Error())
 	}
 
-	log.Info("Monitoring started for " + name)
+	log.Debug("Opened Event Log handler for " + name)
 	return handle.Handle, nil // All good, return error code 0
 }
