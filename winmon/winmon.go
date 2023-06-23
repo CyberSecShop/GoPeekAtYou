@@ -40,7 +40,15 @@ func Start(name string) (int, error) {
 		}
 	}
 
-	return 0, nil // All good, return error code 0
+	// Before we Go, let's clean up behind ourselves.
+	defer func() {
+		err = eventlog.Remove(name)
+		if err != nil {
+			log.Warn("Closing handle failed! Because " + err.Error())
+		}
+	}()
+
+	return 0, nil // All good, let's go home
 }
 
 func Install(name string) (int, error) {
@@ -74,6 +82,8 @@ func Open(name string) (windows.Handle, error) {
 
 func FetchInfo(handle windows.Handle) ([]byte, error) {
 	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle)))
+
+	//ComputerName := handle.Get
 
 	// TODO testing
 	raw := map[string]interface{}{
