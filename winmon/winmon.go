@@ -45,6 +45,8 @@ func Start(name string) (int, error) {
 		err = eventlog.Remove(name)
 		if err != nil {
 			log.Warn("Closing handle failed! Because " + err.Error())
+		} else {
+			log.Info("Handler(s) closed.")
 		}
 	}()
 
