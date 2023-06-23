@@ -10,8 +10,6 @@ func main() {
 
 	log.SetLevel(log.DebugLevel)
 
-	log.Info("Let's install the monitoring agent...")
-
 	const name = "mylog"
 
 	ReturnCode, err := winmon.Start(name)

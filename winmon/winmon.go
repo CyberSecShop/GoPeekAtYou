@@ -16,7 +16,7 @@ func Start(name string) (int, error) {
 	if installReturnCode == 0 {
 		log.Info("Installation completed.")
 	} else {
-		log.Error("Installation failed! Because " + err.Error() +
+		log.Warning("Installation failed! Because " + err.Error() +
 			". (Return Code: " + strconv.Itoa(installReturnCode) + ")")
 	}
 
@@ -51,7 +51,7 @@ func Open(name string) (windows.Handle, error) {
 	log.Debug("Installing winmon agent...")
 
 	handle, err := eventlog.Open(name)
-	if err != nil {
+	if err != nil || handle == nil {
 		log.Warn("Failed to start monitoring for " + name)
 		return handle.Handle, errors.New(err.Error())
 	}
