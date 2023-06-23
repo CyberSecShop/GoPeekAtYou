@@ -21,7 +21,7 @@ func Start(name string) (int, error) {
 	}
 
 	// Let's start monitoring...
-	EventLogHandle, err := Open(name)
+	_, err = Open(name)
 	if err != nil {
 		log.Info("Monitoring started. Event log handle: ???")
 	} else {
