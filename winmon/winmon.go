@@ -15,7 +15,7 @@ func Hello(name string) string {
 }
 
 func Install() (int, error) {
-	log.Println("Installing winmon agent...")
+	log.Debug("Installing winmon agent...")
 
 	const name = "mylog"
 	const supports = eventlog.Error | eventlog.Warning | eventlog.Info
@@ -23,9 +23,10 @@ func Install() (int, error) {
 	err := eventlog.InstallAsEventCreate(name, supports)
 
 	if err != nil {
-		log.Println("Blast!! Something went wrong during installation!")
+		log.Error("Blast!! Something went wrong during installation!")
 		return -1, errors.New("installation failed")
 	}
 
+	log.Debug("Installation successful")
 	return 0, nil // All good, return error code 0
 }
