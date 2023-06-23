@@ -8,11 +8,11 @@ import (
 	"golang.org/x/sys/windows/svc/eventlog"
 )
 
+const name = "mylog"
+
 func main() {
 
 	log.SetLevel(log.DebugLevel)
-
-	const name = "mylog"
 
 	//ReturnCode, err := winmon.Start(name)
 	//if ReturnCode == 0 {
@@ -45,9 +45,16 @@ func main() {
 }
 
 func FetchInfo(handle *eventlog.Log) ([]byte, error) {
-	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
+	log.Debug("HERE WE GO Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 
-	//ComputerName := handle.Get
+	t, e := eventlog.Open(name)
+	if e != nil {
+		log.Fatal(e)
+	}
+	tt, ee := windowseventlogs.OpenEventLog(source)
+	if ee != nil {
+		log.Fatal(e)
+	}
 
 	// TODO testing
 	raw := map[string]interface{}{
