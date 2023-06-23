@@ -23,9 +23,9 @@ func Start(name string) (int, error) {
 	// Let's start monitoring...
 	_, err = Open(name)
 	if err != nil {
-		log.Info("Monitoring started. Event log handle: ???")
-	} else {
 		log.Error("Monitoring start failed! Because " + err.Error())
+	} else {
+		log.Info("Monitoring started. Event log handle: ???")
 	}
 
 	return 0, nil // All good, return error code 0
