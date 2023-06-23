@@ -24,7 +24,7 @@ func Install() (int, error) {
 
 	if err != nil {
 		log.Error("Blast!! Something went wrong during installation!")
-		return -1, errors.New("installation failed")
+		return -1, errors.New(err.Error())
 	}
 
 	log.Debug("Installation successful")
