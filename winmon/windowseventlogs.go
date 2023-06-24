@@ -1,14 +1,15 @@
 package winmon
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"github.com/abdfnx/gosh"
 	log "github.com/sirupsen/logrus"
-	"os/exec"
 )
 
 func Exec(command string) ([]byte, error) {
+	log.Debugf("Executing command: \n %v", command)
 
 	validationFailure := ValidateCommand(command)
 
@@ -17,23 +18,15 @@ func Exec(command string) ([]byte, error) {
 		return nil, validationFailure
 	}
 
-	cmd := exec.Command(command)
+	err, out, errout := gosh.PowershellOutput(command)
 
-	stdin, err := cmd.StdinPipe()
 	if err != nil {
-		log.Fatal(err)
-	}
-	go func() {
-		defer stdin.Close()
-		log.Warnf("Failed to exit command gracefully.")
-	}()
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Fatalf("Failed to output command: %s", err)
-		return nil, err
+		log.Errorf("command error: %v\n", err)
+		log.Errorf("command output error: %v\n", errout)
 	}
 
-	return out, nil
+	log.Debugf("Command execution complete: \n %s", command)
+	return []byte(out), nil
 }
 
 func ValidateCommand(command string) error {
@@ -49,18 +42,47 @@ func ValidateCommand(command string) error {
 	}
 }
 
-func ListLogs() string {
+func ListLogs(filter string) ([]map[string]interface{}, error) {
+	log.Debugf("Listing logs. Filter: \n %v", filter)
 
-	//out, _ := Exec("Get-WinEvent -ListLog *")
+	cmd := fmt.Sprintf("Get-WinEvent -ListLog %s", filter)
 
-	err, out, errout := gosh.PowershellOutput(`Get-WinEvent -LogName 'Application' -MaxEvents 10`)
+	// Convert to JSON
+	cmd = fmt.Sprintf("%v | ConvertTo-Json", cmd)
+
+	out, err := Exec(cmd)
 
 	if err != nil {
-		log.Printf("error: %v\n", err)
-		fmt.Print(errout)
+		log.Warnf("Failed to list logs: %v\n", err)
+		return nil, err
 	}
 
-	log.Debugf(out)
+	return ConvertBytesToJson(out)
+}
 
-	return fmt.Sprintf("%s", out)
+func ConvertBytesToJson(raw []byte) ([]map[string]interface{}, error) {
+
+	//TODO debugging
+	//raw = []byte(`{"num":6.13,"strs":["a","b"]}`)
+	//raw = []byte(`[{"num":3.14,"strs":["a","b"]}]`)
+
+	var loggers []map[string]interface{}
+	err := json.Unmarshal(raw, &loggers)
+	if err != nil && err.Error() == "json: cannot unmarshal object into Go value of type []map[string]interface {}" {
+		log.Debugf("Seems like JSON is a single object, placing in array.")
+
+		raw = []byte(fmt.Sprintf("[%s]", raw))
+		err = json.Unmarshal(raw, &loggers)
+	}
+
+	log.Tracef("Marshalling []bytes to JSON map. Input: %s", loggers)
+
+	if err != nil {
+		log.Warnf("Could not marshal json:")
+		return nil, err
+	}
+
+	return loggers, nil
+
+	// https://gobyexample.com/json
 }

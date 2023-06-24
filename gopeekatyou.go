@@ -1,79 +1,61 @@
 package main
 
 import (
-	"encoding/json"
-	"fmt"
 	"github.com/cybersecshop/gopeekatyou/winmon"
 	log "github.com/sirupsen/logrus"
-	"golang.org/x/sys/windows/svc/eventlog"
 )
 
 const name = "mylog"
 
 func main() {
-
 	log.SetLevel(log.DebugLevel)
 
-	//ReturnCode, err := winmon.Start(name)
-	//if ReturnCode == 0 {
-	//	log.Info("Mission Completed.")
-	//} else {
-	//	log.Error("Failed! Because " + err.Error() +
-	//		". (Return Code: " + strconv.Itoa(ReturnCode) + ")")
-	//}
-
-	handle, err := winmon.GetHandle(name)
-	json, fetchErr := FetchInfo(handle)
-	if fetchErr != nil {
-		log.Error("Fetching info failed! Because " + fetchErr.Error())
-		panic(fetchErr.Error())
-	} else {
-		log.Debug("Info retrieved:\n%s", string(json)) //TODO testing!
-	}
+	FetchInfo()
 
 	// Before we Go, let's clean up behind ourselves.
 	defer func() {
-		log.Debug("Closing handler(s).")
-		err = eventlog.Remove(name)
+		log.Debug("Tearing down...")
 
-		if err == nil {
-			err = handle.Close()
-		}
-
-		if err != nil {
-			log.Warn("Closing handle failed! Because " + err.Error())
-		} else {
-			log.Debug("Handler(s) closed.")
-		}
+		log.Debug("Shut down gracefully.")
 	}()
-
 }
 
-func FetchInfo(handle *eventlog.Log) ([]byte, error) {
-	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
+func FetchInfo() {
+	log.Debugf("Fetching info for Event Log handler ")
 
-	if handle == nil {
-		log.Fatal("Handler nil")
-	}
+	err := DescribeLogs("*sec*")
 
-	log.Debug(winmon.ListLogs())
-
-	// TODO testing
-	raw := map[string]interface{}{
-		"intValue":    1234,
-		"boolValue":   true,
-		"stringValue": "hello!",
-		"objectValue": map[string]interface{}{
-			"arrayValue": []int{1, 2, 3, 4},
-		},
-	}
-
-	json, err := json.Marshal(raw)
 	if err != nil {
-		log.Warn("could not marshal json: %s\n", err)
-		return nil, err
+		log.Errorf("Failed to describe logs!")
+		panic(err.Error())
 	}
 
-	log.Debug("Done fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
-	return json, nil // All good, return error code 0
+	log.Debug("Done fetching info for Event Log handler")
+}
+
+func DescribeLogs(filter string) error {
+	log.Debugf("Describing logs for %s", filter)
+
+	logs, err := winmon.ListLogs(filter)
+
+	if err != nil {
+		log.Errorf("Failed to list logs!")
+		return err
+	} else {
+		log.Debugf("Number of logs: %d", len(logs))
+
+		for index, element := range logs {
+			log.Debugf("%d) Log name: %s", index, element["LogName"])
+		}
+
+		log.Tracef("Logs: %s", logs)
+		return nil
+	}
+}
+
+func GetLogEvents() (map[string]interface{}, error) {
+	log.Debugf("Fetching Windows Log events")
+
+	log.Debug("Done fetching info for Event Log handler")
+	return nil, nil // All good, return error code 0
 }
