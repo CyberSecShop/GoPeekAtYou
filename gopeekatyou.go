@@ -35,6 +35,11 @@ func main() {
 	defer func() {
 		log.Debug("Closing handler(s).")
 		err = eventlog.Remove(name)
+
+		if err == nil {
+			err = handle.Close()
+		}
+
 		if err != nil {
 			log.Warn("Closing handle failed! Because " + err.Error())
 		} else {
@@ -45,16 +50,13 @@ func main() {
 }
 
 func FetchInfo(handle *eventlog.Log) ([]byte, error) {
-	log.Debug("HERE WE GO Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
+	log.Debug("Fetching info for Event Log handler " + fmt.Sprint(uintptr(handle.Handle)))
 
-	t, e := eventlog.Open(name)
-	if e != nil {
-		log.Fatal(e)
+	if handle == nil {
+		log.Fatal("Handler nil")
 	}
-	tt, ee := windowseventlogs.OpenEventLog(source)
-	if ee != nil {
-		log.Fatal(e)
-	}
+
+	log.Debug(winmon.ListLogs())
 
 	// TODO testing
 	raw := map[string]interface{}{
